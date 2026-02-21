@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYDROPONICS DASHBOARD</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="glass-card login-box"><br>
+        <h1 class="h1">SMART HYDROPONICS</h1><br>
+        <p style="color:#b0bec5; margin-top: 0;">Please enter password</p>
+        <input type="password" id="password-input" placeholder="••••••••">
+        <button class="btn-login" onclick="checkLogin()">LOGIN</button>
+        <div id="login-error"></div>
+    </div>
+</div>
+
+<div id="main-dashboard">
+    <div class="container">
+        
+        <button class="btn-logout" onclick="logout()" title="Logout">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+        </button>
+
+        <h1>HYDROPONICS</h1>
+        <div class="conn-status">LINK: <span id="mqtt-status" style="color: #ff3d00;">OFFLINE</span></div>
+
+        <div class="glass-card">
+            <button class="btn-start" onclick="startSystem()">START</button>
+        </div>
+
+        <div class="glass-card">
+            <h3>SYSTEM STATUS</h3>
+            <div id="system-status">Waiting...</div>
+        </div>
+
+        <div class="glass-card sensor-card" onclick="openModal('pH')">
+            <h3>pH SENSOR</h3>
+            <div class="value" id="val-ph">0.00</div>
+            <div class="unit">pH</div>
+            <div class="gauge-container">
+                <svg viewBox="0 0 100 50" class="gauge-svg">
+                    <defs>
+                        <linearGradient id="grad-ph" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#00b0ff"/><stop offset="50%" stop-color="#00e676"/><stop offset="100%" stop-color="#ff3d00"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M 10 45 A 40 40 0 0 1 90 45" fill="none" stroke="url(#grad-ph)" stroke-width="8" stroke-linecap="round"/>
+                    <polygon points="48,45 52,45 50,10" fill="#ffffff" class="needle" id="needle-ph" />
+                    <circle cx="50" cy="45" r="4" fill="#ffffff" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="glass-card sensor-card" onclick="openModal('EC')">
+            <h3>EC SENSOR</h3>
+            <div class="value" id="val-ec">0.000</div>
+            <div class="unit">mS/cm</div>
+            <div class="gauge-container">
+                <svg viewBox="0 0 100 50" class="gauge-svg">
+                    <path d="M 10 45 A 40 40 0 0 1 90 45" fill="none" stroke="url(#grad-ph)" stroke-width="8" stroke-linecap="round"/>
+                    <polygon points="48,45 52,45 50,10" fill="#ffffff" class="needle" id="needle-ec" />
+                    <circle cx="50" cy="45" r="4" fill="#ffffff" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="glass-card sensor-card" onclick="openModal('TDS')">
+            <h3>TDS SENSOR</h3>
+            <div class="value" id="val-tds">0</div>
+            <div class="unit">ppm</div>
+            <div class="gauge-container">
+                <svg viewBox="0 0 100 50" class="gauge-svg">
+                    <path d="M 10 45 A 40 40 0 0 1 90 45" fill="none" stroke="url(#grad-ph)" stroke-width="8" stroke-linecap="round"/>
+                    <polygon points="48,45 52,45 50,10" fill="#ffffff" class="needle" id="needle-tds" />
+                    <circle cx="50" cy="45" r="4" fill="#ffffff" />
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-overlay" onclick="closeModal()">
+    <div class="glass-card modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title" id="modal-title">SENSOR</div>
+        <div class="value" id="modal-val">--</div>
+        <div class="unit" id="modal-unit">unit</div>
+        <div class="modal-status-text" id="modal-status">NORMAL</div>
+        <div style="color: #b0bec5; font-size: 0.9rem;" id="modal-desc">Range: --</div>
+        <button class="btn-close" onclick="closeModal()">CLOSE</button>
+    </div>
+</div>
+    <script src="script.js"></script>
+
+</body>
+</html>
