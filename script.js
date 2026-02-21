@@ -78,30 +78,18 @@
 
         // ตั้งค่าเซิร์ฟเวอร์ MQTT - ลองใช้ Mosquitto public broker
         const mqttHost = "test.mosquitto.org";
-        const mqttPort = 8081; // WebSocket port
+        const mqttPort = 8884; // WebSocket port
         const clientID = "hydro_web_" + parseInt(Math.random() * 100000);
 
-        try {
-            client = new Paho.MQTT.Client(mqttHost, mqttPort, clientID);
-            client.onConnectionLost = onConnectionLost;
-            client.onMessageArrived = onMessageArrived;
-            client.connect({
-                onSuccess: onConnect, 
-                onFailure: function(error) {
-                    console.error("MQTT Connection Failed:", error);
-                    document.getElementById("mqtt-status").innerText = "FAILED";
-                    document.getElementById("mqtt-status").style.color = "#ff3d00";
-                },
-                useSSL: false,
-                reconnect: true,
-                cleanSession: true,
-                timeout: 10
-            });
-        } catch(error) {
-            console.error("MQTT Init Error:", error);
-            document.getElementById("mqtt-status").innerText = "ERROR";
-            document.getElementById("mqtt-status").style.color = "#ff3d00";
-        }
+        client = new Paho.MQTT.Client(mqttHost, mqttPort, clientID);
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+        client.connect({
+            onSuccess: onConnect, 
+            useSSL: true,
+            reconnect: true,
+            cleanSession: true
+        });
     }
 
     function onConnect() {
