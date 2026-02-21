@@ -76,15 +76,15 @@
         document.getElementById("mqtt-status").innerText = "CONNECTING...";
         document.getElementById("mqtt-status").style.color = "#ffea00";
 
-        // ตั้งค่าเซิร์ฟเวอร์ MQTT (ใช้พอร์ต 8000 สำหรับหน้าเว็บ)
+        // ตั้งค่าเซิร์ฟเวอร์ MQTT (ใช้ WSS - WebSocket Secure สำหรับ HTTPS)
         const mqttHost = "broker.hivemq.com";
-        const mqttPort = 8000; 
+        const mqttPort = 8884; // พอร์ต WSS ที่ปลอดภัย
         const clientID = "hydro_web_" + parseInt(Math.random() * 100000);
 
         client = new Paho.MQTT.Client(mqttHost, mqttPort, clientID);
         client.onConnectionLost = onConnectionLost;
         client.onMessageArrived = onMessageArrived;
-        client.connect({onSuccess:onConnect, useSSL:false});
+        client.connect({onSuccess:onConnect, useSSL:true}); // useSSL:true สำหรับ WSS
     }
 
     function onConnect() {
