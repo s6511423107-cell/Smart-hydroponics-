@@ -60,11 +60,25 @@
         input[type="password"]:focus { border-color: #00b0ff; box-shadow: 0 0 10px rgba(0, 176, 255, 0.3); }
 
         .btn-login {
-            background: #00b0ff; color: white; border: none; padding: 12px 40px;
+            background: #128571; color: white; border: none; padding: 12px 40px;
             font-size: 1.2rem; border-radius: 30px; cursor: pointer; font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0, 176, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
         }
-        .btn-login:active { transform: scale(0.95); }
+        .btn-login:active { transform: scale(0.70);}
+
+        .btn-visitor {
+           background: #128571; color: white; border: none; padding: 12px 40px;
+            font-size: 1.2rem; border-radius: 30px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+        .btn-visitor:hover {
+               background: rgba(56, 179, 179, 0.3);
+            color: rgb(255, 255, 255);
+            border-color: #00b0ff;
+            box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.3);
+        }
+        .btn-visitor:active { transform: scale(0.70);}
+
         #login-error { color: #ff3d00; margin-top: 15px; font-size: 0.95rem; min-height: 20px;}
         
         .btn-logout:hover {  
@@ -129,14 +143,19 @@
             box-shadow: 0px 0px 15px 12px #2b974b;
             animation: scaleUp 0.3s ease-in-out;
         }
-        
-        @keyframes scaleUp {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
         .btn-start:active { transform: scale(0.96);}
+        
+        .btn-start:disabled {
+            background: rgba(100, 100, 100, 0.2); 
+            border-color: rgba(100, 100, 100, 0.5); 
+            color: #888888;
+            cursor: not-allowed; 
+            box-shadow: none;
+        }
+        .btn-start:disabled:hover {
+            box-shadow: none;
+            animation: none;
+        }
         
 
         /* Pop-up Modal */

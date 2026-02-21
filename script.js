@@ -1,6 +1,7 @@
 
     let currentData = { ph: 0, ec_mS: 0, tds_ppm: 0 };
     let client;
+    let isLoggedIn = false; // ติดตามว่าล็อคอินด้วยรหัสหรือแค่ visitor
     
     // ตัวแปรเก็บข้อความสถานะจาก ESP32 และจำนวนวินาทีสำหรับแทน
     let statusMessageTemplate = ""; // ข้อความเดิมจาก ESP32
@@ -18,16 +19,31 @@
         const pass = document.getElementById('password-input').value;
         const err = document.getElementById('login-error');
         
-        // 🔑 เปลี่ยนรหัสผ่านตรงนี้ครับ (แก้ตัวเลข 123 เป็นอย่างอื่น)
-        if (pass === '123') { 
+        // 🔑 รหัสผ่านถูกแปลงเป็น Base64 + "hydro" เพื่อความปลอดภัย
+        // Base64("123") = "MTIz" + "hydro" = "MTIzhydro"
+        const hashedPassword = "MTIzhydro";
+        const userInput = btoa(pass) + "hydro"; // แปลงอินพุตเป็น Base64 + "hydro"
+        
+        if (userInput === hashedPassword) { 
             // ล็อคอินสำเร็จ -> ซ่อนหน้าล็อคอิน และโชว์หน้าแดชบอร์ด
+            isLoggedIn = true; // เข้าด้วยรหัส
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-dashboard').style.display = 'flex';
+            document.querySelector('.btn-start').disabled = false; // เปิดปุ่ม START
             err.innerText = ""; 
             initMQTT(); // เริ่มต่อเน็ตดึงข้อมูล
         } else {
             err.innerText = "Incorrect Password"; // ถ้ารหัสผิดให้แจ้งเตือน
         }
+    }
+
+    // ปุ่ม Visitor - เข้าดูแบบไม่ต้องรหัส
+    function visitAsGuest() {
+        isLoggedIn = false; // เข้าแบบ visitor
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-dashboard').style.display = 'flex';
+        document.querySelector('.btn-start').disabled = true; // ล็อคปุ่ม START
+        initMQTT(); // เริ่มต่อเน็ตดึงข้อมูล
     }
 
     // กด Enter ในช่องรหัสผ่านเพื่อล็อคอิน
@@ -38,6 +54,7 @@
     // ปุ่มกดออกจากระบบ
     function logout() {
         // ซ่อนแดชบอร์ด กลับไปโชว์หน้าล็อคอิน
+        isLoggedIn = false;
         document.getElementById('main-dashboard').style.display = 'none';
         document.getElementById('login-screen').style.display = 'flex';
         
@@ -181,6 +198,10 @@
 
     // ฟังก์ชันสั่งงานระบบ (ส่งคำสั่ง 'on')
     function startSystem() {
+        if(!isLoggedIn) {
+            alert("Only authorized users can start the system. Please login with password.");
+            return;
+        }
         if(!client || !client.isConnected()) return alert("System Offline.");
         const message = new Paho.MQTT.Message("on");
         message.destinationName = "esp32/relay2";
