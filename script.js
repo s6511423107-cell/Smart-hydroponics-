@@ -187,31 +187,11 @@ let currentData = { ph: 0, ec_mS: 0, tds_ppm: 0 };
         }, 1000);
     }
     
-    // อัปเดตข้อความสถานะและค่าเซนเซอร์ (ลดลงตามเวลาที่เหลือ)
+// อัปเดตเฉพาะข้อความสถานะและเวลานับถอยหลัง (ไม่ไปยุ่งกับเลขเซนเซอร์)
     function updateStatusAndSensors() {
-        // อัปเดตข้อความสถานะ - แทนตัวเลขแรกด้วย countdownSeconds
         if (statusMessageTemplate) {
             const updatedMsg = statusMessageTemplate.replace(/\d+s/, countdownSeconds + "s");
             document.getElementById("system-status").innerText = updatedMsg;
-        }
-        
-        // คำนวณค่าเซนเซอร์ลดลงตามสัดส่วนของเวลาที่เหลือ
-        // (ค่า = ค่าเริ่มต้น * (เวลาเหลือ / เวลาทั้งหมด))
-        if (countdownDuration > 0) {
-            const ratio = countdownSeconds / countdownDuration;
-            const newPH = (sensorDataStart.ph * ratio).toFixed(2);
-            const newEC = (sensorDataStart.ec_mS * ratio).toFixed(3);
-            const newTDS = Math.round(sensorDataStart.tds_ppm * ratio);
-            
-            // อัปเดตค่าบนจอ
-            document.getElementById("val-ph").innerText = newPH;
-            document.getElementById("val-ec").innerText = newEC;
-            document.getElementById("val-tds").innerText = newTDS;
-            
-            // ขยับเข็มเกจ
-            updateNeedle("needle-ph", parseFloat(newPH), 4, 8);
-            updateNeedle("needle-ec", parseFloat(newEC), 0, 3);
-            updateNeedle("needle-tds", parseFloat(newTDS), 0, 2000);
         }
     }
 
@@ -284,4 +264,5 @@ let currentData = { ph: 0, ec_mS: 0, tds_ppm: 0 };
     }
 
     function closeModal() { document.getElementById('modal-overlay').classList.remove('active'); }
+
 
