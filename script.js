@@ -103,8 +103,6 @@ let currentData = { ph: 0, ec_mS: 0, tds_ppm: 0 };
         client.connect({
             onSuccess: onConnect, 
             useSSL: true,
-            reconnect: true,
-            cleanSession: true
         });
     }
 
@@ -286,3 +284,4 @@ let currentData = { ph: 0, ec_mS: 0, tds_ppm: 0 };
     }
 
     function closeModal() { document.getElementById('modal-overlay').classList.remove('active'); }
+
