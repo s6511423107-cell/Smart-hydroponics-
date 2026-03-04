@@ -1,6 +1,6 @@
-
-    let currentData = { ph: 0, ec_mS: 0, tds_ppm: 0 };
+let currentData = { ph: 0, ec_mS: 0, tds_ppm: 0 };
     let client;
+    let isLoggedIn = false; // ติดตามว่าล็อคอินด้วยรหัสหรือแค่ visitor
     
     // ตัวแปรเก็บข้อความสถานะจาก ESP32 และจำนวนวินาทีสำหรับแทน
     let statusMessageTemplate = ""; // ข้อความเดิมจาก ESP32
@@ -21,8 +21,19 @@
         // 🔑 เปลี่ยนรหัสผ่านตรงนี้ครับ (แก้ตัวเลข 123 เป็นอย่างอื่น)
         if (pass === '123') { 
             // ล็อคอินสำเร็จ -> ซ่อนหน้าล็อคอิน และโชว์หน้าแดชบอร์ด
+            isLoggedIn = true;
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-dashboard').style.display = 'flex';
+            
+            // ปลดล็อคปุ่ม START
+            const btn = document.querySelector('.btn-start');
+            if(btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.title = '';
+            }
+            
             err.innerText = ""; 
             initMQTT(); // เริ่มต่อเน็ตดึงข้อมูล
         } else {
@@ -38,6 +49,7 @@
     // ปุ่มกดออกจากระบบ
     function logout() {
         // ซ่อนแดชบอร์ด กลับไปโชว์หน้าล็อคอิน
+        isLoggedIn = false;
         document.getElementById('main-dashboard').style.display = 'none';
         document.getElementById('login-screen').style.display = 'flex';
         
@@ -52,6 +64,23 @@
         if(client && client.isConnected()) client.disconnect(); // ตัดการเชื่อมต่อเน็ต
     }
 
+    // ฟังก์ชันสำหรับเข้าแบบ Visitor (ล็อคปุ่ม START)
+    function visitAsGuest() {
+        isLoggedIn = false;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-dashboard').style.display = 'flex';
+        
+        const btn = document.querySelector('.btn-start');
+        if(btn) {
+            btn.disabled = true; // ล็อคปุ่ม START
+            btn.style.opacity = '0.5'; // ทำให้ปุ่มสีจาง
+            btn.style.cursor = 'not-allowed'; // เปลี่ยนเมาส์เป็นสัญลักษณ์ห้าม
+            btn.title = 'เฉพาะ Admin เท่านั้น'; // แสดงข้อความเมื่อ hover
+        }
+        
+        initMQTT(); // เริ่มต่อเน็ตดึงข้อมูล
+    }
+
     // ==========================================
     // ส่วนที่ 2: ระบบเชื่อมต่อ MQTT (ส่ง-รับ ข้อมูล)
     // ==========================================
@@ -59,15 +88,24 @@
         document.getElementById("mqtt-status").innerText = "CONNECTING...";
         document.getElementById("mqtt-status").style.color = "#ffea00";
 
-        // ตั้งค่าเซิร์ฟเวอร์ MQTT (ใช้พอร์ต 8000 สำหรับหน้าเว็บ)
-        const mqttHost = "broker.hivemq.com";
-        const mqttPort = 8000; 
+        // 🚨 ตั้งค่าเซิร์ฟเวอร์ EMQX และพอร์ต WSS 8084 สำหรับ GitHub Pages
+        const mqttHost = "broker.emqx.io";
+        const mqttPort = 8084; 
+        const mqttPath = "/mqtt";
         const clientID = "hydro_web_" + parseInt(Math.random() * 100000);
 
-        client = new Paho.MQTT.Client(mqttHost, mqttPort, clientID);
+        client = new Paho.MQTT.Client(mqttHost, mqttPort, mqttPath, clientID);
+        
         client.onConnectionLost = onConnectionLost;
         client.onMessageArrived = onMessageArrived;
-        client.connect({onSuccess:onConnect, useSSL:false});
+        
+        // 🚨 บังคับใช้ useSSL: true เพื่อความปลอดภัยบนหน้าเว็บ
+        client.connect({
+            onSuccess: onConnect, 
+            useSSL: true,
+            reconnect: true,
+            cleanSession: true
+        });
     }
 
     function onConnect() {
@@ -151,18 +189,6 @@
         }, 1000);
     }
     
-    // ฟังก์ชันสำหรับเข้าแบบ Visitor (ล็อคปุ่ม START)
-    function visitAsGuest() {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-dashboard').style.display = 'flex';
-        const btn = document.querySelector('.btn-start');
-        btn.disabled = true; // ล็อคปุ่ม START
-        btn.style.opacity = '0.5'; // ทำให้ปุ่มสีจาง
-        btn.style.cursor = 'not-allowed'; // เปลี่ยนเมาส์เป็นสัญลักษณ์ห้าม
-        btn.title = 'เฉพาะ Admin เท่านั้น'; // แสดงข้อความเมื่อ hover
-        initMQTT(); // เริ่มต่อเน็ตดึงข้อมูล
-    }
-    
     // อัปเดตข้อความสถานะและค่าเซนเซอร์ (ลดลงตามเวลาที่เหลือ)
     function updateStatusAndSensors() {
         // อัปเดตข้อความสถานะ - แทนตัวเลขแรกด้วย countdownSeconds
@@ -193,6 +219,10 @@
 
     // ฟังก์ชันสั่งงานระบบ (ส่งคำสั่ง 'on')
     function startSystem() {
+        if(!isLoggedIn) {
+            alert("Only authorized users can start the system. Please login with password.");
+            return;
+        }
         if(!client || !client.isConnected()) return alert("System Offline.");
         const message = new Paho.MQTT.Message("on");
         message.destinationName = "esp32/relay2";
